@@ -1,3 +1,5 @@
+import "./reset.css"
+
 export const metadata = {
   title: "Page title",
   description: "Page description",
