@@ -24,3 +24,19 @@ export const Button: FC<ComponentProps<"button">> = ({
     {children}
   </button>
 )
+
+export const Input: FC<ComponentProps<"input">> = ({ style, ...props }) => (
+  <input
+    {...props}
+    style={{
+      backgroundColor: "#f0f0f0",
+      border: "none",
+      borderRadius: ".5rem",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+      display: "block",
+      fontSize: "1rem",
+      padding: ".75rem",
+      ...style,
+    }}
+  />
+)
