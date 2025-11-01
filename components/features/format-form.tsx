@@ -1,13 +1,35 @@
-import { useState, type FC, type FormEvent } from "react"
+import { useEffect, useState, type FC, type FormEvent } from "react"
 import { Button, Input } from "../form"
+import { saveFormatToStorage } from "../../utilities/storage"
 
-export const FormatForm: FC = () => {
-  const [format, setFormat] = useState<{ column: number; row: number }>({
+const selectionModeList = ["repeat", "manual"] as const
+type SelectionMode = (typeof selectionModeList)[number]
+
+export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
+  const [format, setFormat] = useState<Format>({
+    name: "New format",
     column: 60,
     row: 60,
+    selectedIndexes: [],
   })
+  const [mode, setMode] = useState<SelectionMode>("manual")
+  useEffect(() => {
+    setFormat({
+      ...format,
+      selectedIndexes: Array(format.row).fill(0),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [format.column, format.row])
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
+  }
+  const handleCreate = () => {
+    const error = saveFormatToStorage(format)
+    if (error) {
+      alert(error)
+      return
+    }
+    onCreate()
   }
   return (
     <>
@@ -21,7 +43,7 @@ export const FormatForm: FC = () => {
         }}
       >
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-          {["row", "column"].map((key) => (
+          {["name", "row", "column"].map((key) => (
             <div
               key={key}
               style={{
@@ -30,35 +52,94 @@ export const FormatForm: FC = () => {
                 gap: ".25rem",
               }}
             >
-              <label htmlFor="row">{key.toUpperCase()}</label>
+              <label htmlFor="row" style={{ textTransform: "capitalize" }}>
+                {key}
+              </label>
               <Input
-                type="number"
+                type={key == "name" ? "text" : "number"}
                 value={format[key]}
                 onChange={({ target: { value } }) =>
-                  setFormat({ ...format, [key]: value })
+                  setFormat({
+                    ...format,
+                    [key]: key == "name" ? value : Number(value),
+                  })
                 }
               />
             </div>
           ))}
         </div>
-        <Button>Create</Button>
-        <table>
-          <tbody>
-            {Array(format.row)
-              .fill(0)
-              .map((_, r) => (
-                <tr key={r}>
-                  {Array(format.column)
-                    .fill(0)
-                    .map((_, c) => (
-                      <td key={c}>
-                        <input type="radio" name={`${r}`} required />
-                      </td>
-                    ))}
-                </tr>
+        <div style={{ display: "flex", flexDirection: "row", gap: ".5rem" }}>
+          {selectionModeList.map((value) => (
+            <label key={value} style={{ textTransform: "capitalize" }}>
+              <input
+                type="radio"
+                name="mode"
+                value={mode}
+                checked={mode === value}
+                onChange={() => setMode(value)}
+              />
+              &nbsp;{value}
+            </label>
+          ))}
+        </div>
+        {mode == "repeat" ? (
+          <>
+            <Input
+              type="number"
+              min={1}
+              max={format.column}
+              onChange={({ target: { value } }) =>
+                setFormat({
+                  ...format,
+                  selectedIndexes: Array(format.row)
+                    .fill(null)
+                    .map((_, r) => Number(value) + r * format.column),
+                })
+              }
+            />
+          </>
+        ) : (
+          mode == "manual" && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: ".5rem",
+              }}
+            >
+              {format.selectedIndexes.map((s, i) => (
+                <div key={i} style={{ position: "relative" }}>
+                  <Input
+                    type="number"
+                    value={s}
+                    placeholder={`${i + 1}`}
+                    style={{ paddingLeft: "1.5rem" }}
+                    onChange={({ target: { value } }) =>
+                      setFormat({
+                        ...format,
+                        selectedIndexes: format.selectedIndexes.map((s, si) =>
+                          si == i ? Number(value) : s
+                        ),
+                      })
+                    }
+                  />
+                  <div
+                    style={{
+                      fontSize: ".5rem",
+                      position: "absolute",
+                      left: ".5rem",
+                      top: ".5rem",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                </div>
               ))}
-          </tbody>
-        </table>
+            </div>
+          )
+        )}
+        <Button onClick={handleCreate}>Create</Button>
       </form>
     </>
   )

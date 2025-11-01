@@ -1,24 +1,28 @@
 "use client"
 
-import React, { ChangeEvent, FC, useRef, useState } from "react"
+import { ChangeEvent, FC, useEffect, useRef, useState } from "react"
 import { Button } from "../components/form"
 import { downloadCSV } from "../utilities/csv"
 import { Dialog } from "../components/modules/dialog"
 import { FormatForm } from "../components/features/format-form"
+import { getFormatFromStorage } from "../utilities/storage"
 
 const Page: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [format, setFormat] = useState<string>("Random")
+  const [format, setFormat] = useState<Format>()
   const [csvData, setCsvData] = useState<{
     filename: string
     data: string[][]
     timestamps: string[]
-    columnLength: number
-    rowLength: number
+    length: number
+    columnLength?: number
+    rowLength?: number
   }>()
-  const [randomList, setRandomList] = useState<number[]>([])
   const [isOpenFromatFormDialog, setIsOpenFromatFormDialog] =
     useState<boolean>(false)
+  const [formatList, setFormatList] = useState<Format[]>(() =>
+    getFormatFromStorage()
+  )
 
   const handleFileButtonClick = () => {
     fileInputRef.current?.click()
@@ -32,37 +36,35 @@ const Page: FC = () => {
       .split(/\r\n|\n/)
       .map((row) => row.split(",").map((cell) => cell.trim()))
       .filter((row) => row.length > 1)
-    const rowLength = Number(rows[1][1])
-    const columnLength = Number(rows[1][2])
-    const expectedCells = rowLength * columnLength
-    if (rows[0].length - 3 !== expectedCells) {
-      alert(
-        `The number of cells does not match. Expected number of cells: ${expectedCells}, Actual number of cells: ${rows[0].length - 3}`
-      )
-      return
-    }
+    const length = rows[0].length - 1
+    const lengthSquareRoot = Math.sqrt(length)
+
     setCsvData({
       filename: file.name,
       timestamps: rows.map((row) => row[0]),
-      data: rows.map((row) => row.slice(3)),
-      columnLength,
-      rowLength,
+      data: rows.map((row) => row.slice(1)),
+      length,
+      columnLength: Number.isInteger(lengthSquareRoot)
+        ? lengthSquareRoot
+        : undefined,
+      rowLength: Number.isInteger(lengthSquareRoot)
+        ? lengthSquareRoot
+        : undefined,
     })
     e.target.value = ""
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (format == "Random")
-      setRandomList(
-        Array(csvData.rowLength)
-          .fill(0)
-          .map(
-            (_, r) =>
-              Math.floor(Math.random() * csvData.columnLength) +
-              r * csvData.columnLength
-          )
-      )
+    if (!csvData) return
+    if (!format) {
+      alert("Please select a format")
+      return
+    }
+    const convertedData = csvData.data.map((row) =>
+      format.selectedIndexes.map((i) => row[i])
+    )
+    console.log({ formatList })
     downloadCSV({
       filename: `converted-${csvData.filename}`,
       data: convertedData,
@@ -70,24 +72,8 @@ const Page: FC = () => {
     setCsvData(undefined)
   }
 
-  const convertedData = csvData?.data.map((row, i) => {
-    const { rowLength, columnLength, timestamps } = csvData
-    return [
-      timestamps[i],
-      ...Array(rowLength)
-        .fill(0)
-        .map((_, j) => {
-          if (format === "First") {
-            return row[j * columnLength]
-          } else {
-            return row[randomList[j]]
-          }
-        }),
-    ]
-  })
-
   return (
-    <React.Fragment>
+    <>
       <section
         style={{
           background: "#f9f9f9",
@@ -111,15 +97,15 @@ const Page: FC = () => {
             }}
           >
             <div style={{ display: "flex", gap: "1rem" }}>
-              {["Random", "First"].map((value) => (
-                <label key={value}>
+              {formatList.map((format) => (
+                <label key={format.name}>
                   <input
                     type="radio"
                     name="format"
-                    value={format}
-                    onChange={() => setFormat(value)}
+                    value={format.name}
+                    onChange={() => setFormat(format)}
                   />
-                  &nbsp;{value}
+                  &nbsp;{format.name}
                 </label>
               ))}
             </div>
@@ -151,6 +137,10 @@ const Page: FC = () => {
             {csvData && (
               <div>
                 <p>{csvData.filename}</p>
+                <p>
+                  Sensor count: {csvData.length} ({csvData.columnLength}&times;
+                  {csvData.rowLength})
+                </p>
               </div>
             )}
             <div>
@@ -165,9 +155,16 @@ const Page: FC = () => {
         onClose={() => setIsOpenFromatFormDialog(false)}
         open={isOpenFromatFormDialog}
       >
-        <FormatForm />
+        {isOpenFromatFormDialog && (
+          <FormatForm
+            onCreate={() => {
+              setIsOpenFromatFormDialog(false)
+              setFormatList(getFormatFromStorage())
+            }}
+          />
+        )}
       </Dialog>
-    </React.Fragment>
+    </>
   )
 }
 
