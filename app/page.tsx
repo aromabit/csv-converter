@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent, FC, useEffect, useRef, useState } from "react"
+import { ChangeEvent, FC, useRef, useState } from "react"
 import { Button } from "../components/form"
 import { downloadCSV } from "../utilities/csv"
 import { Dialog } from "../components/modules/dialog"
