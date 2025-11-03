@@ -6,6 +6,7 @@ import { downloadCSV } from "../utilities/csv"
 import { Dialog } from "../components/modules/dialog"
 import { FormatForm } from "../components/features/format-form"
 import { getFormatFromStorage } from "../utilities/storage"
+import { FormatList } from "../components/features/format-list"
 
 const Page: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -18,7 +19,9 @@ const Page: FC = () => {
     columnLength?: number
     rowLength?: number
   }>()
-  const [isOpenFromatFormDialog, setIsOpenFromatFormDialog] =
+  const [isOpenFormatFormDialog, setIsOpenFormatFormDialog] =
+    useState<boolean>(false)
+  const [isOpenFormatListDialog, setIsOpenFormatListDialog] =
     useState<boolean>(false)
   const [formatList, setFormatList] = useState<Format[]>([])
 
@@ -98,7 +101,7 @@ const Page: FC = () => {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", gap: "1rem" }}>
+            <div style={{ display: "flex", gap: ".5rem" }}>
               {formatList.map((format) => (
                 <label key={format.name}>
                   <input
@@ -111,7 +114,14 @@ const Page: FC = () => {
                 </label>
               ))}
             </div>
-            <Button onClick={() => setIsOpenFromatFormDialog(true)}>New</Button>
+            <div style={{ display: "flex", gap: ".5rem" }}>
+              <Button onClick={() => setIsOpenFormatListDialog(true)}>
+                Detail
+              </Button>
+              <Button onClick={() => setIsOpenFormatFormDialog(true)}>
+                New
+              </Button>
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -154,13 +164,26 @@ const Page: FC = () => {
         </div>
       </section>
       <Dialog
-        onClose={() => setIsOpenFromatFormDialog(false)}
-        open={isOpenFromatFormDialog}
+        onClose={() => setIsOpenFormatFormDialog(false)}
+        open={isOpenFormatFormDialog}
       >
-        {isOpenFromatFormDialog && (
+        {isOpenFormatFormDialog && (
           <FormatForm
             onCreate={() => {
-              setIsOpenFromatFormDialog(false)
+              setIsOpenFormatFormDialog(false)
+              setFormatList(getFormatFromStorage())
+            }}
+          />
+        )}
+      </Dialog>
+      <Dialog
+        onClose={() => setIsOpenFormatListDialog(false)}
+        open={isOpenFormatListDialog}
+      >
+        {isOpenFormatListDialog && (
+          <FormatList
+            formatList={formatList}
+            onUpdate={() => {
               setFormatList(getFormatFromStorage())
             }}
           />

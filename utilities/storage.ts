@@ -1,14 +1,22 @@
 const FORMAT_STORAGE_KEY = "csv-converter-format" as const
 
 export const saveFormatToStorage = (format: Format): Error | undefined => {
-  const formatList: Format[] = JSON.parse(
-    localStorage.getItem(FORMAT_STORAGE_KEY) ?? "[]"
-  )
+  const formatList = getFormatFromStorage()
   if (formatList.find((f) => f.name === format.name))
     return new Error("Format name already exists")
   localStorage.setItem(
     FORMAT_STORAGE_KEY,
     JSON.stringify([...formatList, format])
+  )
+}
+
+export const deleteFormatFromStorage = (format: Format): Error | undefined => {
+  const formatList = getFormatFromStorage()
+  if (!formatList.find((f) => f.name === format.name))
+    return new Error("Format not found")
+  localStorage.setItem(
+    FORMAT_STORAGE_KEY,
+    JSON.stringify(formatList.filter((f) => f.name !== format.name))
   )
 }
 
