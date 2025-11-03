@@ -3,4 +3,5 @@ type Format = {
   column: number
   row: number
   selectedIndexes: number[]
+  updatedAt: number
 }

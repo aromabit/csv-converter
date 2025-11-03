@@ -11,6 +11,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     column: 60,
     row: 60,
     selectedIndexes: [],
+    updatedAt: Date.now(),
   })
   const [mode, setMode] = useState<SelectionMode>("manual")
   useEffect(() => {
@@ -24,7 +25,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     e.preventDefault()
   }
   const handleCreate = () => {
-    const error = saveFormatToStorage(format)
+    const error = saveFormatToStorage({ ...format, updatedAt: Date.now() })
     if (error) {
       alert(error)
       return

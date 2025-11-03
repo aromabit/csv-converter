@@ -6,7 +6,9 @@ export const saveFormatToStorage = (format: Format): Error | undefined => {
     return new Error("Format name already exists")
   localStorage.setItem(
     FORMAT_STORAGE_KEY,
-    JSON.stringify([...formatList, format])
+    JSON.stringify(
+      [...formatList, format].sort((a, b) => b.updatedAt - a.updatedAt)
+    )
   )
 }
 
