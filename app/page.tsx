@@ -64,7 +64,7 @@ const Page: FC = () => {
       return
     }
     const convertedData = csvData.data.map((row) =>
-      format.selectedIndexes.map((i) => row[i])
+      format.selectedIndexes.map((i) => row[i - 1])
     )
     console.log({ formatList })
     downloadCSV({
