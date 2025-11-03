@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent, FC, useRef, useState } from "react"
+import { ChangeEvent, FC, useEffect, useRef, useState } from "react"
 import { Button } from "../components/form"
 import { downloadCSV } from "../utilities/csv"
 import { Dialog } from "../components/modules/dialog"
@@ -20,9 +20,11 @@ const Page: FC = () => {
   }>()
   const [isOpenFromatFormDialog, setIsOpenFromatFormDialog] =
     useState<boolean>(false)
-  const [formatList, setFormatList] = useState<Format[]>(() =>
-    getFormatFromStorage()
-  )
+  const [formatList, setFormatList] = useState<Format[]>([])
+
+  useEffect(() => {
+    Promise.resolve().then(() => setFormatList(getFormatFromStorage()))
+  }, [])
 
   const handleFileButtonClick = () => {
     fileInputRef.current?.click()
