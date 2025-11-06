@@ -1,10 +1,22 @@
 import { FC } from "react"
-import { deleteFormatFromStorage } from "../../utilities/storage"
+import {
+  deleteFormatFromStorage,
+  getFormatFromStorage,
+} from "../../utilities/storage"
+import { Button } from "../form"
+import { downloadJSON } from "../../utilities/json"
 
 export const FormatList: FC<{
   formatList: Format[]
   onUpdate: () => void
 }> = ({ formatList, onUpdate }) => {
+  const handelDownload = () => {
+    const formatList = getFormatFromStorage()
+    downloadJSON<{ formatList: Format[] }>({
+      filename: "format.json",
+      data: { formatList },
+    })
+  }
   return (
     <div style={{ padding: "1rem" }}>
       <h2>Format list</h2>
@@ -42,6 +54,7 @@ export const FormatList: FC<{
           ))}
         </tbody>
       </table>
+      <Button onClick={handelDownload}>Download format data</Button>
     </div>
   )
 }

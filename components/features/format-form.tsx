@@ -7,6 +7,7 @@ type SelectionMode = (typeof selectionModeList)[number]
 
 export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   const [format, setFormat] = useState<Format>({
+    version: "0.1",
     name: "New format",
     column: 60,
     row: 60,
