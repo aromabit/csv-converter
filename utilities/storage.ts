@@ -12,6 +12,18 @@ export const saveFormatToStorage = (format: Format): Error | undefined => {
   )
 }
 
+export const saveFormatsToStorage = (formats: Format[]): Error | undefined => {
+  const formatList = getFormatFromStorage()
+  if (formatList.find((f) => formats.find((format) => format.name === f.name)))
+    return new Error("Format name already exists")
+  localStorage.setItem(
+    FORMAT_STORAGE_KEY,
+    JSON.stringify(
+      [...formatList, ...formats].sort((a, b) => b.updatedAt - a.updatedAt)
+    )
+  )
+}
+
 export const deleteFormatFromStorage = (format: Format): Error | undefined => {
   const formatList = getFormatFromStorage()
   if (!formatList.find((f) => f.name === format.name))

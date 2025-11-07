@@ -2,17 +2,41 @@ import { FC } from "react"
 import {
   deleteFormatFromStorage,
   getFormatFromStorage,
+  saveFormatsToStorage,
 } from "../../utilities/storage"
 import { Button } from "../form"
 import { downloadJSON } from "../../utilities/json"
+import { FileButton } from "../modules/file-button"
 
 export const FormatList: FC<{
   formatList: Format[]
   onUpdate: () => void
 }> = ({ formatList, onUpdate }) => {
+  const handleImport = async (file: File) => {
+    if (!file) return
+    const text = await file.text()
+    try {
+      const data = JSON.parse(text) as FormatDataJSON
+      const duplicated = data.formatList.find((f) =>
+        formatList.some((format) => format.name == f.name)
+      )
+      if (duplicated) {
+        alert(`Format is uplicated: ${duplicated.name}`)
+        return
+      }
+      const error = saveFormatsToStorage(data.formatList)
+      if (error) {
+        alert(error)
+        return
+      }
+      onUpdate()
+    } catch {
+      alert("Invalid data format")
+    }
+  }
   const handelDownload = () => {
     const formatList = getFormatFromStorage()
-    downloadJSON<{ formatList: Format[] }>({
+    downloadJSON<FormatDataJSON>({
       filename: "format.json",
       data: { formatList },
     })
@@ -54,7 +78,19 @@ export const FormatList: FC<{
           ))}
         </tbody>
       </table>
-      <Button onClick={handelDownload}>Download format data</Button>
+      <div
+        style={{
+          display: "flex",
+          gap: ".5rem",
+          justifyContent: "space-between",
+          padding: ".5rem",
+        }}
+      >
+        <FileButton onChange={handleImport} accept=".json">
+          Import format data
+        </FileButton>
+        <Button onClick={handelDownload}>Download format data</Button>
+      </div>
     </div>
   )
 }

@@ -6,3 +6,5 @@ type Format = {
   selectedIndexes: number[]
   updatedAt: number
 }
+
+type FormatDataJSON = { formatList: Format[] }
