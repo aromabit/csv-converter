@@ -31,6 +31,8 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             alignItems: "center",
             background: "#f0f0f0",
             display: "flex",
+            flexFlow: "column",
+            gap: "1rem",
             justifyContent: "center",
             minHeight: "calc(100dvh - 3rem)",
           }}
