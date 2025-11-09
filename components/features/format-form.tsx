@@ -1,6 +1,8 @@
 import { useEffect, useState, type FC, type FormEvent } from "react"
 import { Button, Input } from "../form"
 import { saveFormatToStorage } from "../../utilities/storage"
+import { isSquare } from "../../utilities/math"
+import { ImageGrid } from "./image-grid"
 
 const selectionModeList = ["manual"] as const
 type SelectionMode = (typeof selectionModeList)[number]
@@ -15,6 +17,11 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     updatedAt: Date.now(),
   })
   const [mode, setMode] = useState<SelectionMode>("manual")
+  const [sideCount, setSideCount] = useState<number>()
+  useEffect(() => {
+    const root = isSquare(format.sourceCount)
+    setSideCount(root)
+  }, [format.sourceCount])
   useEffect(() => {
     setFormat({
       ...format,
@@ -84,6 +91,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             </label>
           ))}
         </div>
+        {sideCount && <ImageGrid sideCount={sideCount} size={8} />}
         {mode == "manual" && (
           <div
             style={{
