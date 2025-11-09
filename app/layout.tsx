@@ -1,8 +1,8 @@
 import "./reset.css"
 
 export const metadata = {
-  title: "Page title",
-  description: "Page description",
+  title: "Aroma CSV converter",
+  description: "Aroma CSV converter is for CMOS Image sensor",
 }
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
