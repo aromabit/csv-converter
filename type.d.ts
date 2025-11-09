@@ -1,8 +1,8 @@
 type Format = {
   version: string
   name: string
-  column: number
-  row: number
+  sourceCount: number
+  targetCount: number
   selectedIndexes: number[]
   updatedAt: number
 }

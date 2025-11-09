@@ -50,7 +50,7 @@ export const FormatList: FC<{
             <tr key={format.name}>
               <td>{format.name}</td>
               <td>
-                {format.column} x {format.row}
+                {format.sourceCount} &gt; {format.targetCount}
               </td>
               <td>{format.selectedIndexes.join(",")}</td>
               <td>

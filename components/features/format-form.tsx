@@ -2,15 +2,15 @@ import { useEffect, useState, type FC, type FormEvent } from "react"
 import { Button, Input } from "../form"
 import { saveFormatToStorage } from "../../utilities/storage"
 
-const selectionModeList = ["repeat", "manual"] as const
+const selectionModeList = ["manual"] as const
 type SelectionMode = (typeof selectionModeList)[number]
 
 export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   const [format, setFormat] = useState<Format>({
     version: "0.1",
     name: "New format",
-    column: 60,
-    row: 60,
+    sourceCount: 3600,
+    targetCount: 12,
     selectedIndexes: [],
     updatedAt: Date.now(),
   })
@@ -18,10 +18,10 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   useEffect(() => {
     setFormat({
       ...format,
-      selectedIndexes: Array(format.row).fill(0),
+      selectedIndexes: Array(format.targetCount).fill(0),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format.column, format.row])
+  }, [format.targetCount])
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
   }
@@ -45,7 +45,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
         }}
       >
         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-          {["name", "row", "column"].map((key) => (
+          {["name", "sourceCount", "targetCount"].map((key) => (
             <div
               key={key}
               style={{
@@ -84,62 +84,49 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             </label>
           ))}
         </div>
-        {mode == "repeat" ? (
-          <>
-            <Input
-              type="number"
-              min={1}
-              max={format.column}
-              onChange={({ target: { value } }) =>
-                setFormat({
-                  ...format,
-                  selectedIndexes: Array(format.row)
-                    .fill(null)
-                    .map((_, r) => Number(value) + r * format.column),
-                })
-              }
-            />
-          </>
-        ) : (
-          mode == "manual" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: ".5rem",
-              }}
-            >
-              {format.selectedIndexes.map((s, i) => (
-                <div key={i} style={{ position: "relative" }}>
-                  <Input
-                    type="number"
-                    value={s}
-                    placeholder={`${i + 1}`}
-                    style={{ paddingLeft: "1.5rem" }}
-                    onChange={({ target: { value } }) =>
-                      setFormat({
-                        ...format,
-                        selectedIndexes: format.selectedIndexes.map((s, si) =>
-                          si == i ? Number(value) : s
-                        ),
-                      })
-                    }
-                  />
-                  <div
-                    style={{
-                      fontSize: ".5rem",
-                      position: "absolute",
-                      left: ".5rem",
-                      top: ".5rem",
-                    }}
-                  >
-                    {i + 1}
-                  </div>
+        {mode == "manual" && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: ".5rem",
+            }}
+          >
+            {format.selectedIndexes.map((s, i) => (
+              <div key={i} style={{ position: "relative" }}>
+                <Input
+                  value={s}
+                  max={format.sourceCount}
+                  placeholder={`${i + 1}`}
+                  style={{
+                    maxWidth: "6rem",
+                    padding: ".5rem",
+                    paddingLeft: "1.5rem",
+                    textAlign: "right",
+                  }}
+                  onChange={({ target: { value } }) =>
+                    setFormat({
+                      ...format,
+                      selectedIndexes: format.selectedIndexes.map((s, si) =>
+                        si == i ? Number(value) : s
+                      ),
+                    })
+                  }
+                />
+                <div
+                  style={{
+                    fontSize: ".5rem",
+                    position: "absolute",
+                    left: ".5rem",
+                    top: ".5rem",
+                  }}
+                >
+                  {i + 1}
                 </div>
-              ))}
-            </div>
-          )
+              </div>
+            ))}
+          </div>
         )}
         <Button onClick={handleCreate}>Create</Button>
       </form>
