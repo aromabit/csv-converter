@@ -1,7 +1,7 @@
-import { ChangeEvent, FC, useEffect, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { Card, CardTitle, Section } from "../components/layout"
 import { FileButton } from "../components/modules/file-button"
-import { downloadCSV } from "../utilities/csv"
+import { downloadCSV, extractRawDataRows } from "../utilities/csv"
 import { getFormatFromStorage } from "../utilities/storage"
 import { Button } from "./form"
 import { Dialog } from "./modules/dialog"
@@ -28,14 +28,10 @@ export const Converter: FC = () => {
     Promise.resolve().then(() => setFormatList(getFormatFromStorage()))
   }, [])
 
-  const handleChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleChangeFile = async (file: File) => {
     if (!file) return
     const text = await file.text()
-    const rows = text
-      .split(/\r\n|\n/)
-      .map((row) => row.split(",").map((cell) => cell.trim()))
-      .filter((row) => row.length > 1)
+    const rows = extractRawDataRows(text)
     const length = rows[0].length - 1
     const lengthSquareRoot = Math.sqrt(length)
 
@@ -51,7 +47,6 @@ export const Converter: FC = () => {
         ? lengthSquareRoot
         : undefined,
     })
-    e.target.value = ""
   }
 
   const handleSubmit = (e: React.FormEvent) => {

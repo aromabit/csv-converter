@@ -19,3 +19,10 @@ export const downloadCSV = ({
   a.click()
   a.remove()
 }
+
+export const extractRawDataRows = (text: string) =>
+  text
+    .split(/\r\n|\n/)
+    .map((row) => row.split(",").map((cell) => cell.trim()))
+    .filter((row) => row.length > 1)
+    .slice(2)

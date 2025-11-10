@@ -1,10 +1,12 @@
 import { FC, useState } from "react"
+import { rgbToCss, valueToRGB } from "../../utilities/color"
 
-export const GripButton: FC<{ row: number; col: number; size?: number }> = ({
-  row,
-  col,
-  size = 8,
-}) => {
+export const GripButton: FC<{
+  row: number
+  col: number
+  size?: number
+  value?: number
+}> = ({ row, col, size = 8, value }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false)
   return (
     <button
@@ -12,7 +14,11 @@ export const GripButton: FC<{ row: number; col: number; size?: number }> = ({
       role="gridcell"
       aria-label={`row ${row + 1}, column ${col + 1}`}
       style={{
-        backgroundColor: isHovered ? "rgba(0, 0, 0, 0.5)" : "#fff",
+        backgroundColor: value
+          ? rgbToCss(valueToRGB(value, 4000))
+          : isHovered
+            ? "rgba(0, 0, 0, 0.5)"
+            : "#fff",
         border: "none",
         borderRadius: 0,
         cursor: "pointer",

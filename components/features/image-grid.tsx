@@ -1,10 +1,11 @@
 import { FC } from "react"
 import { GripButton } from "../modules/grid-button"
 
-export const ImageGrid: FC<{ sideCount: number; size: number }> = ({
-  sideCount,
-  size,
-}) => {
+export const ImageGrid: FC<{
+  sideCount: number
+  size: number
+  values?: number[]
+}> = ({ sideCount, size, values }) => {
   return (
     <div
       style={{
@@ -27,6 +28,7 @@ export const ImageGrid: FC<{ sideCount: number; size: number }> = ({
                 row={row}
                 col={col}
                 size={size}
+                value={values[row * sideCount + col]}
               />
             ))
         )}
