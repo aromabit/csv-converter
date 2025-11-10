@@ -35,6 +35,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             gap: "1rem",
             justifyContent: "center",
             minHeight: "calc(100dvh - 3rem)",
+            padding: "1rem",
           }}
         >
           {children}
