@@ -6,8 +6,20 @@ export const GripButton: FC<{
   col: number
   size?: number
   value?: number
-  onClick?: (props: { col: number; row: number }) => void
-}> = ({ row, col, size = 8, value, onClick }) => {
+  isSelected?: boolean
+  onFocus?: (props: { col: number; row: number }) => void
+  onOver?: (props: { col: number; row: number }) => void
+  onUnFocused?: () => void
+}> = ({
+  row,
+  col,
+  size = 8,
+  value,
+  isSelected,
+  onFocus,
+  onOver,
+  onUnFocused,
+}) => {
   const [isHovered, setIsHovered] = useState<boolean>(false)
   return (
     <button
@@ -19,16 +31,19 @@ export const GripButton: FC<{
         border: "none",
         borderRadius: 0,
         cursor: "pointer",
-        filter: isHovered && "brightness(20%)",
+        filter: (isSelected || isHovered) && "brightness(20%)",
         height: `${size}px`,
         padding: 0,
         width: `${size}px`,
       }}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true)
+        onOver?.({ row, col })
+      }}
       onMouseOut={() => setIsHovered(false)}
       onBlur={() => setIsHovered(false)}
-      onClick={() => onClick?.({ row, col })}
-      onDragOver={() => onClick?.({ row, col })}
+      onFocus={() => onFocus?.({ row, col })}
+      onMouseUp={() => onUnFocused?.()}
     />
   )
 }

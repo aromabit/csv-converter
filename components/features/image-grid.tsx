@@ -1,4 +1,4 @@
-import { FC } from "react"
+import { FC, useState } from "react"
 import { GripButton } from "../modules/grid-button"
 
 export const ImageGrid: FC<{
@@ -6,6 +6,16 @@ export const ImageGrid: FC<{
   size: number
   values?: number[]
 }> = ({ sideCount, size, values }) => {
+  const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
+  const [selectedList, setSelectedList] = useState<
+    { col: number; row: number }[]
+  >([])
+  const toggleSelectedList = (item: { col: number; row: number }) =>
+    selectedList.some((s) => s.col == item.col && s.row == item.row)
+      ? setSelectedList(
+          selectedList.filter((s) => !(s.col == item.col && s.row == item.row))
+        )
+      : setSelectedList([...selectedList, item])
   return (
     <div
       style={{
@@ -28,10 +38,20 @@ export const ImageGrid: FC<{
                 row={row}
                 col={col}
                 size={size}
-                value={values[row * sideCount + col]}
+                value={values && values[row * sideCount + col]}
+                isSelected={selectedList.some(
+                  (s) => s.col == col && s.row == row
+                )}
+                onFocus={(item) => {
+                  setIsOnFocused(true)
+                  toggleSelectedList(item)
+                }}
+                onUnFocused={() => setIsOnFocused(false)}
+                onOver={(item) => isOnFocused && toggleSelectedList(item)}
               />
             ))
         )}
+      {JSON.stringify(selectedList)}
     </div>
   )
 }
