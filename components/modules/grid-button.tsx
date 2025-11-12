@@ -6,7 +6,8 @@ export const GripButton: FC<{
   col: number
   size?: number
   value?: number
-}> = ({ row, col, size = 8, value }) => {
+  onClick?: (props: { col: number; row: number }) => void
+}> = ({ row, col, size = 8, value, onClick }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false)
   return (
     <button
@@ -14,14 +15,11 @@ export const GripButton: FC<{
       role="gridcell"
       aria-label={`row ${row + 1}, column ${col + 1}`}
       style={{
-        backgroundColor: value
-          ? rgbToCss(valueToRGB(value, 4000))
-          : isHovered
-            ? "rgba(0, 0, 0, 0.5)"
-            : "#fff",
+        background: value ? rgbToCss(valueToRGB(value, 4000)) : "#fff",
         border: "none",
         borderRadius: 0,
         cursor: "pointer",
+        filter: isHovered && "brightness(20%)",
         height: `${size}px`,
         padding: 0,
         width: `${size}px`,
@@ -29,6 +27,8 @@ export const GripButton: FC<{
       onMouseEnter={() => setIsHovered(true)}
       onMouseOut={() => setIsHovered(false)}
       onBlur={() => setIsHovered(false)}
+      onClick={() => onClick?.({ row, col })}
+      onDragOver={() => onClick?.({ row, col })}
     />
   )
 }
