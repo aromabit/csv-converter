@@ -1,4 +1,4 @@
-import { FC, useState } from "react"
+import { FC, useState, useMemo } from "react"
 import { rgbToCss, valueToRGB } from "../../utilities/color"
 
 export const GripButton: FC<{
@@ -21,13 +21,18 @@ export const GripButton: FC<{
   onUnFocused,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false)
+
+  const backgroundColor = useMemo(() => {
+    return value ? rgbToCss(valueToRGB(value, 4000)) : "#fff"
+  }, [value])
+
   return (
     <button
       key={`${row}-${col}`}
       role="gridcell"
       aria-label={`row ${row + 1}, column ${col + 1}`}
       style={{
-        background: value ? rgbToCss(valueToRGB(value, 4000)) : "#fff",
+        background: backgroundColor,
         border: "none",
         borderRadius: 0,
         cursor: "pointer",

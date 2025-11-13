@@ -1,4 +1,4 @@
-import { FC, useState } from "react"
+import { FC, useState, useMemo, useCallback } from "react"
 import { GripButton } from "../modules/grid-button"
 
 export const ImageGrid: FC<{
@@ -7,15 +7,38 @@ export const ImageGrid: FC<{
   values?: number[]
 }> = ({ sideCount, size, values }) => {
   const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
-  const [selectedList, setSelectedList] = useState<
-    { col: number; row: number }[]
-  >([])
-  const toggleSelectedList = (item: { col: number; row: number }) =>
-    selectedList.some((s) => s.col == item.col && s.row == item.row)
-      ? setSelectedList(
-          selectedList.filter((s) => !(s.col == item.col && s.row == item.row))
-        )
-      : setSelectedList([...selectedList, item])
+  const [selectedSet, setSelectedSet] = useState<Set<string>>(new Set())
+
+  const gridItems = useMemo(() => {
+    return Array(sideCount * sideCount)
+      .fill(0)
+      .map((_, index) => {
+        const row = Math.floor(index / sideCount)
+        const col = index % sideCount
+        return {
+          key: `${row},${col}`,
+          row,
+          col,
+          value: values?.[index],
+        }
+      })
+  }, [sideCount, values])
+
+  const toggleSelectedList = useCallback(
+    (item: { col: number; row: number }) => {
+      const key = `${item.row},${item.col}`
+      setSelectedSet((prev) => {
+        const newSet = new Set(prev)
+        if (newSet.has(key)) {
+          newSet.delete(key)
+        } else {
+          newSet.add(key)
+        }
+        return newSet
+      })
+    },
+    []
+  )
   return (
     <div
       style={{
@@ -27,31 +50,22 @@ export const ImageGrid: FC<{
         width: "max-content",
       }}
     >
-      {Array(sideCount)
-        .fill(0)
-        .map((_, row) =>
-          Array(sideCount)
-            .fill(0)
-            .map((_, col) => (
-              <GripButton
-                key={`${row},${col}`}
-                row={row}
-                col={col}
-                size={size}
-                value={values && values[row * sideCount + col]}
-                isSelected={selectedList.some(
-                  (s) => s.col == col && s.row == row
-                )}
-                onFocus={(item) => {
-                  setIsOnFocused(true)
-                  toggleSelectedList(item)
-                }}
-                onUnFocused={() => setIsOnFocused(false)}
-                onOver={(item) => isOnFocused && toggleSelectedList(item)}
-              />
-            ))
-        )}
-      {JSON.stringify(selectedList)}
+      {gridItems.map(({ key, row, col, value }) => (
+        <GripButton
+          key={key}
+          row={row}
+          col={col}
+          size={size}
+          value={value}
+          isSelected={selectedSet.has(key)}
+          onFocus={(item) => {
+            setIsOnFocused(true)
+            toggleSelectedList(item)
+          }}
+          onUnFocused={() => setIsOnFocused(false)}
+          onOver={(item) => isOnFocused && toggleSelectedList(item)}
+        />
+      ))}
     </div>
   )
 }
