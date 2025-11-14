@@ -5,8 +5,10 @@ export const ImageGrid: FC<{
   sideCount: number
   size: number
   values?: number[]
-}> = ({ sideCount, size, values }) => {
+  isSelectMode?: boolean
+}> = ({ sideCount, size, values, isSelectMode }) => {
   const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
+  const [isOnSelecting, setIsOnSelecting] = useState<boolean>(false)
   const [selectedSet, setSelectedSet] = useState<Set<string>>(new Set())
 
   const gridItems = useMemo(() => {
@@ -29,15 +31,15 @@ export const ImageGrid: FC<{
       const key = `${item.row},${item.col}`
       setSelectedSet((prev) => {
         const newSet = new Set(prev)
-        if (newSet.has(key)) {
-          newSet.delete(key)
-        } else {
+        if (isOnSelecting) {
           newSet.add(key)
+        } else {
+          newSet.delete(key)
         }
         return newSet
       })
     },
-    []
+    [isOnSelecting]
   )
   return (
     <div
@@ -49,6 +51,8 @@ export const ImageGrid: FC<{
         gap: 0,
         width: "max-content",
       }}
+      onBlur={() => isSelectMode && setIsOnFocused(false)}
+      onMouseOut={() => isSelectMode && setIsOnFocused(false)}
     >
       {gridItems.map(({ key, row, col, value }) => (
         <GripButton
@@ -59,11 +63,15 @@ export const ImageGrid: FC<{
           value={value}
           isSelected={selectedSet.has(key)}
           onFocus={(item) => {
+            if (!isSelectMode) return
             setIsOnFocused(true)
+            setIsOnSelecting(!selectedSet.has(key))
             toggleSelectedList(item)
           }}
-          onUnFocused={() => setIsOnFocused(false)}
-          onOver={(item) => isOnFocused && toggleSelectedList(item)}
+          onUnFocused={() => isSelectMode && setIsOnFocused(false)}
+          onOver={(item) =>
+            isSelectMode && isOnFocused && toggleSelectedList(item)
+          }
         />
       ))}
     </div>
