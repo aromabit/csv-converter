@@ -16,7 +16,7 @@ export const Button: FC<ComponentProps<"button">> = ({
       cursor: "pointer",
       fontSize: "1rem",
       fontWeight: "600",
-      padding: ".75rem 1.5rem",
+      padding: ".5rem 1.25rem",
       transition: "all 0.2s ease-in-out",
       ...style,
     }}
