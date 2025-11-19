@@ -1,13 +1,10 @@
-import { useEffect, useState, type FC, type FormEvent } from "react"
+import { useState, type FC, type FormEvent } from "react"
 import { Button, Input } from "../form"
 import { saveFormatToStorage } from "../../utilities/storage"
 import { isSquare } from "../../utilities/math"
 import { ImageGrid } from "./image-grid"
 import { FileButton } from "../modules/file-button"
 import { extractRawDataRows } from "../../utilities/csv"
-
-const selectionModeList = ["image", "manual"] as const
-type SelectionMode = (typeof selectionModeList)[number]
 
 const TextField: FC<{
   label: string
@@ -26,36 +23,28 @@ const TextField: FC<{
 }
 
 export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
-  const [format, setFormat] = useState<Format>({
+  const [format, setFormat] = useState<Format>(() => ({
     version: "0.1",
     name: "New format",
     sourceCount: 3600,
-    targetCount: 12,
+    targetCount: 0,
     selectedIndexes: [],
     updatedAt: Date.now(),
-  })
-  const [mode, setMode] = useState<SelectionMode>("manual")
-  const [sideCount, setSideCount] = useState<number>()
+  }))
   const [values, setValues] = useState<number[][]>()
-  useEffect(() => {
-    const root = isSquare(format.sourceCount)
-    setSideCount(root)
-  }, [format.sourceCount])
-  useEffect(() => {
-    setFormat({
-      ...format,
-      selectedIndexes: Array(format.targetCount).fill(0),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format.targetCount])
+  const sideCount = isSquare(format.sourceCount)
+
   const handleFileChange = async (file: File) => {
     if (!file) return
     const text = await file.text()
     const rows = extractRawDataRows(text)
     const sensorCount = rows[0].length - 1
-    const root = isSquare(sensorCount)
-    setSideCount(root)
-    if (root) {
+    setFormat({
+      ...format,
+      sourceCount: sensorCount,
+    })
+
+    if (isSquare(sensorCount)) {
       setValues(
         rows.map((row) => row.slice(1).map((c) => Math.floor(Number(c))))
       )
@@ -99,41 +88,24 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             />
           ))}
         </div>
-        <div style={{ display: "flex", flexDirection: "row", gap: ".5rem" }}>
-          {selectionModeList.map((value) => (
-            <label key={value} style={{ textTransform: "capitalize" }}>
-              <input
-                type="radio"
-                name="mode"
-                value={mode}
-                checked={mode === value}
-                onChange={() => setMode(value)}
-              />
-              &nbsp;{value}
-            </label>
-          ))}
-        </div>
-        {mode == "image" && (
-          <>
-            {values && (
-              <ImageGrid
-                sideCount={sideCount}
-                size={8}
-                values={values[0]}
-                isSelectMode={true}
-                onSelected={(selectedIndexes) =>
-                  setFormat({ ...format, selectedIndexes })
-                }
-              />
-            )}
-            {!values && (
-              <div>
-                <FileButton accept=".csv" onChange={handleFileChange}>
-                  Choose csv file
-                </FileButton>
-              </div>
-            )}
-          </>
+
+        {values && (
+          <ImageGrid
+            sideCount={sideCount}
+            size={8}
+            values={values[0]}
+            isSelectMode={true}
+            onSelected={(selectedIndexes) =>
+              setFormat({ ...format, selectedIndexes })
+            }
+          />
+        )}
+        {!values && (
+          <div>
+            <FileButton accept=".csv" onChange={handleFileChange}>
+              Choose csv file
+            </FileButton>
+          </div>
         )}
         <div
           style={{
@@ -177,7 +149,6 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             </div>
           ))}
         </div>
-
         <Button onClick={handleCreate}>Create</Button>
       </form>
     </>
