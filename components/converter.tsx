@@ -5,7 +5,7 @@ import { downloadCSV, extractRawDataRows } from "../utilities/csv"
 import { getFormatFromStorage } from "../utilities/storage"
 import { Button } from "./form"
 import { Dialog } from "./modules/dialog"
-import { FormatForm } from "./features/format-form"
+import { FormatForm } from "./features/create-format-form"
 import { FormatList } from "./features/format-list"
 
 export const Converter: FC = () => {

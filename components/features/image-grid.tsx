@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback } from "react"
+import { FC, useState, useMemo, useCallback, useEffect } from "react"
 import { GripButton } from "../modules/grid-button"
 
 export const ImageGrid: FC<{
@@ -6,7 +6,8 @@ export const ImageGrid: FC<{
   size: number
   values?: number[]
   isSelectMode?: boolean
-}> = ({ sideCount, size, values, isSelectMode }) => {
+  onSelected?: (selectedIndexes: number[]) => void
+}> = ({ sideCount, size, values, isSelectMode, onSelected }) => {
   const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
   const [isOnSelecting, setIsOnSelecting] = useState<boolean>(false)
   const [selectedSet, setSelectedSet] = useState<Set<string>>(new Set())
@@ -41,6 +42,18 @@ export const ImageGrid: FC<{
     },
     [isOnSelecting]
   )
+
+  useEffect(() => {
+    if (!isSelectMode) return
+    if (!isOnFocused && onSelected) {
+      onSelected(
+        [...selectedSet]
+          .map((key) => key.split(","))
+          .map(([row, col]) => Number(row) * sideCount + Number(col))
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnFocused])
   return (
     <div
       style={{
@@ -51,8 +64,7 @@ export const ImageGrid: FC<{
         gap: 0,
         width: "max-content",
       }}
-      onBlur={() => isSelectMode && setIsOnFocused(false)}
-      onMouseOut={() => isSelectMode && setIsOnFocused(false)}
+      onMouseLeave={() => isOnFocused && setIsOnFocused(false)}
     >
       {gridItems.map(({ key, row, col, value }) => (
         <GripButton
@@ -69,9 +81,9 @@ export const ImageGrid: FC<{
             toggleSelectedList(item)
           }}
           onUnFocused={() => isSelectMode && setIsOnFocused(false)}
-          onOver={(item) =>
-            isSelectMode && isOnFocused && toggleSelectedList(item)
-          }
+          onOver={(item) => {
+            if (isSelectMode && isOnFocused) toggleSelectedList(item)
+          }}
         />
       ))}
     </div>

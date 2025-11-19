@@ -36,18 +36,21 @@ export const GripButton: FC<{
         border: "none",
         borderRadius: 0,
         cursor: "pointer",
-        filter: (isSelected || isHovered) && "brightness(20%)",
+        filter: isSelected
+          ? "brightness(20%)"
+          : isHovered
+            ? "invert(100%)"
+            : undefined,
         height: `${size}px`,
         padding: 0,
         width: `${size}px`,
       }}
-      onMouseEnter={() => {
+      onPointerEnter={() => {
         setIsHovered(true)
         onOver?.({ row, col })
       }}
-      onMouseOut={() => setIsHovered(false)}
-      onBlur={() => setIsHovered(false)}
-      onFocus={() => onFocus?.({ row, col })}
+      onPointerLeave={() => setIsHovered(false)}
+      onMouseDown={() => onFocus?.({ row, col })}
       onMouseUp={() => onUnFocused?.()}
     />
   )
