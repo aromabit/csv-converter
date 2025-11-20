@@ -1,8 +1,9 @@
 import "./reset.css"
 
 export const metadata = {
-  title: "Aroma CSV converter",
-  description: "Aroma CSV converter is for CMOS Image sensor",
+  title: "Aroma Image sensor utility",
+  description:
+    "Aroma Image sensor utility is application which visializes raw data and converts CSV for CMOS Image sensor",
 }
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
@@ -23,7 +24,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
               margin: 0,
             }}
           >
-            Aroma CSV converter
+            Aroma Image sensor utility
           </h1>
         </header>
         <main
@@ -40,6 +41,14 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
         >
           {children}
         </main>
+        <footer
+          style={{
+            fontSize: ".75rem",
+            padding: "1rem",
+          }}
+        >
+          <p>&copy; 2025 Aroma Bit, Inc.</p>
+        </footer>
       </body>
     </html>
   )
