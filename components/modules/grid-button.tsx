@@ -1,36 +1,28 @@
-import { FC, useState, useMemo } from "react"
+import { useMemo, memo } from "react"
 import { rgbToCss, valueToRGB } from "../../utilities/color"
 
-export const GripButton: FC<{
-  row: number
-  col: number
-  size?: number
-  value?: number
-  isSelected?: boolean
-  onFocus?: (props: { col: number; row: number }) => void
-  onOver?: (props: { col: number; row: number }) => void
-  onUnFocused?: () => void
-}> = ({
-  row,
-  col,
+export const GripButton = memo(function GripButton({
+  index,
   size = 8,
   value,
   isSelected,
-  onFocus,
-  onOver,
-  onUnFocused,
-}) => {
-  const [isHovered, setIsHovered] = useState<boolean>(false)
-
+  isHovered
+}: {
+  index: number
+  size?: number
+  value?: number
+  isSelected?: boolean
+  isHovered?: boolean
+}) {
   const backgroundColor = useMemo(() => {
     return value ? rgbToCss(valueToRGB(value, 4000)) : "#fff"
   }, [value])
 
   return (
     <button
-      key={`${row}-${col}`}
+      key={index}
       role="gridcell"
-      aria-label={`row ${row + 1}, column ${col + 1}`}
+      aria-label={`${index}`}
       style={{
         background: backgroundColor,
         border: "none",
@@ -45,13 +37,6 @@ export const GripButton: FC<{
         padding: 0,
         width: `${size}px`,
       }}
-      onPointerEnter={() => {
-        setIsHovered(true)
-        onOver?.({ row, col })
-      }}
-      onPointerLeave={() => setIsHovered(false)}
-      onMouseDown={() => onFocus?.({ row, col })}
-      onMouseUp={() => onUnFocused?.()}
     />
   )
-}
+})

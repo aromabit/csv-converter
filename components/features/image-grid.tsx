@@ -1,41 +1,105 @@
-import { FC, useState, useMemo, useCallback, useEffect } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react"
 import { GripButton } from "../modules/grid-button"
 
-export const ImageGrid: FC<{
+export const ImageGrid = memo(function ImageGrid({
+  sideCount,
+  size,
+  values,
+  isSelectMode,
+  onSelected,
+}: {
   sideCount: number
   size: number
   values?: number[]
   isSelectMode?: boolean
   onSelected?: (selectedIndexes: number[]) => void
-}> = ({ sideCount, size, values, isSelectMode, onSelected }) => {
+}) {
   const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
   const [isOnSelecting, setIsOnSelecting] = useState<boolean>(false)
-  const [selectedSet, setSelectedSet] = useState<Set<string>>(new Set())
+  const [selectedSet, setSelectedSet] = useState<Set<number>>(new Set())
+  const [hoverIndex, setHoverIndex] = useState<number>()
+  const [lastPointerIndex, setLastPointerIndex] = useState<number>()
+  const gridRef = useRef<HTMLDivElement>(null)
 
   const gridItems = useMemo(() => {
     return Array(sideCount * sideCount)
       .fill(0)
       .map((_, index) => {
-        const row = Math.floor(index / sideCount)
-        const col = index % sideCount
         return {
-          key: `${row},${col}`,
-          row,
-          col,
+          index,
           value: values?.[index],
         }
       })
   }, [sideCount, values])
 
+  const getIndexFromRect = useCallback(
+    ({ clientX, clientY }: { clientX: number; clientY: number }) => {
+      const rect = gridRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      const x = clientX - rect.left
+      const y = clientY - rect.top
+
+      const col = Math.floor(x / size)
+      const row = Math.floor(y / size)
+
+      if (col < 0 || col >= sideCount || row < 0 || row >= sideCount) {
+        return undefined
+      }
+
+      return row * sideCount + col
+    },
+    [size, sideCount]
+  )
+
+  const getLineIndexes = useCallback(
+    (from: number, to: number) => {
+      const indexes: number[] = []
+
+      const fromCol = from % sideCount
+      const fromRow = Math.floor(from / sideCount)
+      const toCol = to % sideCount
+      const toRow = Math.floor(to / sideCount)
+
+      const dx = Math.abs(toCol - fromCol)
+      const dy = Math.abs(toRow - fromRow)
+      const sx = fromCol < toCol ? 1 : -1
+      const sy = fromRow < toRow ? 1 : -1
+
+      let err = dx - dy
+      let currentCol = fromCol
+      let currentRow = fromRow
+
+      while (true) {
+        const index = currentRow * sideCount + currentCol
+        indexes.push(index)
+
+        if (currentCol === toCol && currentRow === toRow) break
+
+        const e2 = 2 * err
+        if (e2 > -dy) {
+          err -= dy
+          currentCol += sx
+        }
+        if (e2 < dx) {
+          err += dx
+          currentRow += sy
+        }
+      }
+
+      return indexes
+    },
+    [sideCount]
+  )
+
   const toggleSelectedList = useCallback(
-    (item: { col: number; row: number }) => {
-      const key = `${item.row},${item.col}`
+    ({ index }: { index: number }) => {
       setSelectedSet((prev) => {
         const newSet = new Set(prev)
         if (isOnSelecting) {
-          newSet.add(key)
+          newSet.add(index)
         } else {
-          newSet.delete(key)
+          newSet.delete(index)
         }
         return newSet
       })
@@ -43,14 +107,56 @@ export const ImageGrid: FC<{
     [isOnSelecting]
   )
 
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const index = getIndexFromRect(e)
+      if (index === undefined) return
+
+      if (!isOnFocused) {
+        setHoverIndex(index)
+        return
+      }
+
+      if (lastPointerIndex !== undefined && lastPointerIndex !== index) {
+        const lineIndexes = getLineIndexes(lastPointerIndex, index)
+        lineIndexes.forEach((lineIndex) => {
+          if (lineIndex !== lastPointerIndex) {
+            toggleSelectedList({ index: lineIndex })
+          }
+        })
+      } else {
+        toggleSelectedList({ index })
+      }
+
+      setLastPointerIndex(index)
+      setHoverIndex(undefined)
+    },
+    [
+      isOnFocused,
+      lastPointerIndex,
+      getIndexFromRect,
+      getLineIndexes,
+      toggleSelectedList,
+    ]
+  )
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const index = getIndexFromRect(e)
+      if (index === undefined) return
+
+      setIsOnFocused(true)
+      setIsOnSelecting(!selectedSet.has(index))
+      setLastPointerIndex(index)
+      toggleSelectedList({ index })
+    },
+    [getIndexFromRect, toggleSelectedList, selectedSet]
+  )
+
   useEffect(() => {
     if (!isSelectMode) return
     if (!isOnFocused && onSelected) {
-      onSelected(
-        [...selectedSet]
-          .map((key) => key.split(","))
-          .map(([row, col]) => Number(row) * sideCount + Number(col))
-      )
+      onSelected([...selectedSet].toSorted((a, b) => a - b))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnFocused])
@@ -64,28 +170,29 @@ export const ImageGrid: FC<{
         gap: 0,
         width: "max-content",
       }}
-      onMouseLeave={() => isOnFocused && setIsOnFocused(false)}
+      onMouseLeave={useCallback(() => {
+        setIsOnFocused(false)
+        setHoverIndex(undefined)
+        setLastPointerIndex(undefined)
+      }, [])}
+      onPointerDown={handlePointerDown}
+      onPointerUp={useCallback(() => {
+        setIsOnFocused(false)
+        setLastPointerIndex(undefined)
+      }, [])}
+      onPointerMove={handlePointerMove}
+      ref={gridRef}
     >
-      {gridItems.map(({ key, row, col, value }) => (
+      {gridItems.map(({ index, value }) => (
         <GripButton
-          key={key}
-          row={row}
-          col={col}
+          key={index}
+          index={index}
           size={size}
           value={value}
-          isSelected={selectedSet.has(key)}
-          onFocus={(item) => {
-            if (!isSelectMode) return
-            setIsOnFocused(true)
-            setIsOnSelecting(!selectedSet.has(key))
-            toggleSelectedList(item)
-          }}
-          onUnFocused={() => isSelectMode && setIsOnFocused(false)}
-          onOver={(item) => {
-            if (isSelectMode && isOnFocused) toggleSelectedList(item)
-          }}
+          isSelected={selectedSet.has(index)}
+          isHovered={hoverIndex === index}
         />
       ))}
     </div>
   )
-}
+})
