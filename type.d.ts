@@ -4,6 +4,7 @@ type Format = {
   sourceCount: number
   targetCount: number
   selectedIndexes: number[]
+  groupedIndexes?: number[][]
   updatedAt: number
 }
 

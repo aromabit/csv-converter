@@ -1,10 +1,11 @@
-import { useState, type FC, type FormEvent } from "react"
+import { useMemo, useState, type FC, type FormEvent } from "react"
 import { Button, Input } from "../form"
 import { saveFormatToStorage } from "../../utilities/storage"
 import { isSquare } from "../../utilities/math"
 import { ImageGrid } from "./image-grid"
 import { FileButton } from "../modules/file-button"
 import { extractRawDataRows } from "../../utilities/csv"
+import { groupAdjacent } from "../../utilities/grid"
 
 const TextField: FC<{
   label: string
@@ -33,6 +34,10 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   }))
   const [values, setValues] = useState<number[][]>()
   const sideCount = isSquare(format.sourceCount)
+  const groupedIndexes = useMemo(
+    () => groupAdjacent(new Set(format.selectedIndexes), sideCount),
+    [format.selectedIndexes, sideCount]
+  )
 
   const handleFileChange = async (file: File) => {
     if (!file) return
@@ -54,7 +59,11 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     e.preventDefault()
   }
   const handleCreate = () => {
-    const error = saveFormatToStorage({ ...format, updatedAt: Date.now() })
+    const error = saveFormatToStorage({
+      ...format,
+      groupedIndexes,
+      updatedAt: Date.now(),
+    })
     if (error) {
       alert(error)
       return
@@ -98,6 +107,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             onSelected={(selectedIndexes) =>
               setFormat({ ...format, selectedIndexes })
             }
+            selectedIndexes={format.selectedIndexes}
           />
         )}
         {!values && (
@@ -107,45 +117,52 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
             </FileButton>
           </div>
         )}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: ".5rem",
-          }}
-        >
-          {format.selectedIndexes.map((s, i) => (
-            <div key={i} style={{ position: "relative" }}>
-              <Input
-                value={s}
-                max={format.sourceCount}
-                placeholder={`${i + 1}`}
-                style={{
-                  maxWidth: "6rem",
-                  padding: ".5rem",
-                  paddingLeft: "1.5rem",
-                  textAlign: "right",
-                }}
-                onChange={({ target: { value } }) =>
-                  setFormat({
-                    ...format,
-                    selectedIndexes: format.selectedIndexes.map((s, si) =>
-                      si == i ? Number(value) : s
-                    ),
-                  })
-                }
-              />
-              <div
-                style={{
-                  fontSize: ".5rem",
-                  position: "absolute",
-                  left: ".5rem",
-                  top: ".5rem",
-                }}
-              >
-                {i + 1}
-              </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {groupedIndexes.map((group, gi) => (
+            <div
+              key={gi}
+              style={{
+                alignItems: "center",
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: ".5rem",
+              }}
+            >
+              <div>#{gi + 1}</div>
+              {group.map((s, i) => (
+                <div key={i} style={{ position: "relative" }}>
+                  <Input
+                    value={s}
+                    max={format.sourceCount}
+                    placeholder={`${i + 1}`}
+                    style={{
+                      maxWidth: "6rem",
+                      padding: ".5rem",
+                      paddingLeft: "1.5rem",
+                      textAlign: "right",
+                    }}
+                    onChange={({ target: { value } }) =>
+                      setFormat({
+                        ...format,
+                        selectedIndexes: format.selectedIndexes.map((s, si) =>
+                          si == i ? Number(value) : s
+                        ),
+                      })
+                    }
+                  />
+                  <div
+                    style={{
+                      fontSize: ".5rem",
+                      position: "absolute",
+                      left: ".5rem",
+                      top: ".5rem",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>

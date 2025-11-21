@@ -7,12 +7,14 @@ export const ImageGrid = memo(function ImageGrid({
   values,
   isSelectMode,
   onSelected,
+  selectedIndexes,
 }: {
   sideCount: number
   size: number
   values?: number[]
   isSelectMode?: boolean
   onSelected?: (selectedIndexes: number[]) => void
+  selectedIndexes?: number[]
 }) {
   const [isOnFocused, setIsOnFocused] = useState<boolean>(false)
   const [isOnSelecting, setIsOnSelecting] = useState<boolean>(false)
@@ -160,6 +162,13 @@ export const ImageGrid = memo(function ImageGrid({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnFocused])
+
+  useEffect(() => {
+    if (selectedIndexes) {
+      setSelectedSet(() => new Set(selectedIndexes))
+    }
+  }, [selectedIndexes])
+
   return (
     <div
       style={{
