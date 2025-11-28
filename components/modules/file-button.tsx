@@ -14,7 +14,9 @@ export const FileButton: FC<{
   }
   return (
     <>
-      <Button onClick={() => fileInputRef.current.click()}>{children}</Button>
+      <Button onClick={() => fileInputRef.current.click()} type="button">
+        {children}
+      </Button>
       <input
         ref={fileInputRef}
         type="file"
