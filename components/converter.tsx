@@ -56,13 +56,23 @@ export const Converter: FC = () => {
       alert("Please select a format")
       return
     }
-    const convertedData = csvData.data.map((row) =>
-      format.selectedIndexes.map((i) => row[i - 1])
-    )
-    console.log({ formatList })
+    const startDate = new Date(csvData.timestamps[0])
+    const convertedData = csvData.data.map((row, rowIndex) => [
+      Math.round(
+        (new Date(csvData.timestamps[rowIndex]).getTime() -
+          startDate.getTime()) /
+          100
+      ),
+      ...format.selectedIndexes.map((i) => row[i - 1]),
+    ])
+
     downloadCSV({
       filename: `converted-${csvData.filename}`,
-      data: convertedData,
+      data: [
+        [startDate.toLocaleDateString(), startDate.toLocaleTimeString()],
+        ["TimeCount", ...format.selectedIndexes],
+        ...convertedData,
+      ],
     })
     setCsvData(undefined)
   }
