@@ -63,14 +63,19 @@ export const Converter: FC = () => {
           startDate.getTime()) /
           100
       ),
-      ...format.selectedIndexes.map((i) => row[i - 1]),
+      ...format.groupedIndexes.flat().map((i) => row[i - 1]),
     ])
 
     downloadCSV({
       filename: `converted-${csvData.filename}`,
       data: [
         [startDate.toLocaleDateString(), startDate.toLocaleTimeString()],
-        ["TimeCount", ...format.selectedIndexes],
+        [
+          "TimeCount",
+          ...format.groupedIndexes
+            .map((group, gi) => group.map((index) => `#${gi + 1} (${index})`))
+            .flat(),
+        ],
         ...convertedData,
       ],
     })
