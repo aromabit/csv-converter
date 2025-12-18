@@ -4,13 +4,12 @@ import { FileButton } from "../components/modules/file-button"
 import { isSquare } from "../utilities/math"
 import { ImageGrid } from "./features/image-grid"
 import { extractRawDataRows } from "../utilities/csv"
-import { Button } from "./form"
+import { SeekBar } from "./features/seek-bar"
 
 export const ImageViewer: FC = () => {
   const [sideCount, setSideCount] = useState<number>()
   const [values, setValues] = useState<number[][]>()
   const [time, setTime] = useState<number>(0)
-  const [timer, setTimer] = useState<NodeJS.Timeout>()
 
   const handleChangeFile = async (file: File) => {
     if (!file) return
@@ -32,32 +31,11 @@ export const ImageViewer: FC = () => {
         {sideCount && (
           <>
             <ImageGrid sideCount={sideCount} size={10} values={values[time]} />
-            <div style={{ alignItems: "center", display: "flex", gap: "1rem" }}>
-              <div style={{ textAlign: "right", width: "4rem" }}>{time}</div>
-              <input
-                type="range"
-                min={0}
-                max={values.length - 1}
-                value={time}
-                onChange={({ target: { value } }) => setTime(Number(value))}
-                style={{ width: "100%" }}
-              />
-              <Button
-                onClick={() => {
-                  if (!timer) {
-                    const timer = setInterval(() => {
-                      setTime((time) => ++time % values.length)
-                    }, 100)
-                    setTimer(timer)
-                  } else {
-                    clearTimeout(timer)
-                    setTimer(undefined)
-                  }
-                }}
-              >
-                {timer ? "Stop" : "Start"}
-              </Button>
-            </div>
+            <SeekBar
+              time={time}
+              length={values.length}
+              onChangeTime={(time) => setTime(time)}
+            />
           </>
         )}
         <div>
