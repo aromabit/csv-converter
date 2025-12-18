@@ -6,6 +6,7 @@ import { ImageGrid } from "./image-grid"
 import { FileButton } from "../modules/file-button"
 import { extractRawDataRows } from "../../utilities/csv"
 import { groupAdjacent } from "../../utilities/grid"
+import { SeekBar } from "./seek-bar"
 
 const TextField: FC<{
   label: string
@@ -33,6 +34,7 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     updatedAt: Date.now(),
   }))
   const [values, setValues] = useState<number[][]>()
+  const [time, setTime] = useState<number>(0)
   const sideCount = isSquare(format.sourceCount)
   const groupedIndexes = useMemo(
     () => groupAdjacent(new Set(format.selectedIndexes), sideCount),
@@ -99,16 +101,23 @@ export const FormatForm: FC<{ onCreate: () => void }> = ({ onCreate }) => {
         </div>
 
         {values && (
-          <ImageGrid
-            sideCount={sideCount}
-            size={8}
-            values={values[0]}
-            isSelectMode={true}
-            onSelected={(selectedIndexes) =>
-              setFormat({ ...format, selectedIndexes })
-            }
-            selectedIndexes={format.selectedIndexes}
-          />
+          <>
+            <ImageGrid
+              sideCount={sideCount}
+              size={8}
+              values={values[time]}
+              isSelectMode={true}
+              onSelected={(selectedIndexes) =>
+                setFormat({ ...format, selectedIndexes })
+              }
+              selectedIndexes={format.selectedIndexes}
+            />
+            <SeekBar
+              time={time}
+              length={values.length}
+              onChangeTime={(time) => setTime(time)}
+            />
+          </>
         )}
         {!values && (
           <div>
